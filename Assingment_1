@@ -1,1 +1,37 @@
+print("===== MILK ANALYZER =====")
+print("Seasonal Rate Announcement: April to June")
 
+base_rate = 32.00
+fat_step_rate = 6.45
+bonus_rate = 3.50
+
+farmer_name = input("Enter farmer name: ")
+fat = float(input("Enter Fat value: "))
+snf = float(input("Enter SNF value: "))
+milk_quantity = float(input("Enter milk quantity for 10 days (litres): "))
+
+rate = base_rate + (fat * fat_step_rate)
+
+if milk_quantity > 500:
+    bonus = bonus_rate
+else:
+    bonus = 0
+
+final_rate = rate + bonus
+total_amount = final_rate * milk_quantity
+
+print("\n===== MILK BILL =====")
+print("Farmer Name:", farmer_name)
+print("Fat:", format(fat, ".2f"))
+print("SNF:", format(snf, ".2f"))
+print("Milk Quantity:", milk_quantity, "litres")
+print("Base Rate: Rs.", format(base_rate, ".2f"))
+print("Milk Rate: Rs.", format(rate, ".2f"))
+
+if milk_quantity > 500:
+    print("Bonus Rate: Rs.", format(bonus, ".2f"))
+else:
+    print("Bonus Rate: Rs. 0.00")
+
+print("Final Rate per litre: Rs.", format(final_rate, ".2f"))
+print("Total Amount: Rs.", format(total_amount, ".2f"))
