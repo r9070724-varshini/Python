@@ -1,1 +1,250 @@
+import os
+import csv
 
+# -------------------------------
+# 1. FILE NAMES
+# -------------------------------
+
+department_files = [
+    "CSE.txt",
+    "IT.txt",
+    "ECE.txt",
+    "EEE.txt",
+    "MECH.txt"
+]
+
+output_folder = "output"
+os.makedirs(output_folder, exist_ok=True)
+
+master_file = os.path.join(output_folder, "master_list.csv")
+summary_file = os.path.join(output_folder, "summary.txt")
+error_file = os.path.join(output_folder, "error_log.txt")
+
+
+# -------------------------------
+# 2. EMAIL VALIDATION
+# -------------------------------
+
+def validate_email(email):
+    email = email.strip()
+
+    if "@" not in email:
+        return False
+
+    parts = email.split("@")
+
+    if len(parts) != 2:
+        return False
+
+    if parts[0] == "" or parts[1] == "":
+        return False
+
+    if "." not in parts[1]:
+        return False
+
+    if parts[1].startswith(".") or parts[1].endswith("."):
+        return False
+
+    return True
+
+
+# -------------------------------
+# 3. PROCESS REGISTRATIONS
+# -------------------------------
+
+def process_files():
+
+    seen_register_numbers = set()
+    master_records = []
+    event_participants = {}
+    errors = []
+
+    total_lines = 0
+    valid_count = 0
+    duplicate_count = 0
+    invalid_count = 0
+
+    for filename in department_files:
+
+        # Handle missing files
+        if not os.path.exists(filename):
+            errors.append(f"Missing file: {filename}")
+            continue
+
+        try:
+            with open(filename, "r") as file:
+
+                for line_number, line in enumerate(file, start=1):
+
+                    total_lines += 1
+
+                    try:
+                        line = line.strip()
+
+                        if line == "":
+                            continue
+
+                        # Expected format:
+                        # register_no,name,department,email,event1;event2
+
+                        parts = line.split(",")
+
+                        if len(parts) != 5:
+                            raise ValueError("Damaged line")
+
+                        reg_no = parts[0].strip()
+                        name = parts[1].strip()
+                        department = parts[2].strip()
+                        email = parts[3].strip()
+                        events = parts[4].strip().split(";")
+
+                        # Check empty details
+                        if not reg_no or not name or not department:
+                            raise ValueError("Missing student details")
+
+                        # Check duplicate registration
+                        if reg_no in seen_register_numbers:
+                            duplicate_count += 1
+                            errors.append(
+                                f"{filename}, Line {line_number}: "
+                                f"Duplicate registration {reg_no}"
+                            )
+                            continue
+
+                        # Check email
+                        if not validate_email(email):
+                            raise ValueError("Invalid email")
+
+                        # Remove empty event names
+                        events = [e.strip() for e in events if e.strip()]
+
+                        # Save valid registration number
+                        seen_register_numbers.add(reg_no)
+
+                        record = {
+                            "Register Number": reg_no,
+                            "Name": name,
+                            "Department": department,
+                            "Email": email,
+                            "Events": ";".join(events)
+                        }
+
+                        master_records.append(record)
+                        valid_count += 1
+
+                        # Create event-wise participant lists
+                        for event in events:
+
+                            if event not in event_participants:
+                                event_participants[event] = []
+
+                            event_participants[event].append(record)
+
+                    except Exception as e:
+
+                        invalid_count += 1
+
+                        errors.append(
+                            f"{filename}, Line {line_number}: {e}"
+                        )
+
+        except Exception as e:
+            errors.append(f"Cannot read {filename}: {e}")
+
+
+    # -------------------------------
+    # 4. WRITE MASTER FILE
+    # -------------------------------
+
+    with open(master_file, "w", newline="") as file:
+
+        fieldnames = [
+            "Register Number",
+            "Name",
+            "Department",
+            "Email",
+            "Events"
+        ]
+
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(master_records)
+
+
+    # -------------------------------
+    # 5. WRITE EVENT FILES
+    # -------------------------------
+
+    for event, participants in event_participants.items():
+
+        safe_event_name = "".join(
+            c if c.isalnum() else "_" for c in event
+        )
+
+        event_file = os.path.join(
+            output_folder, safe_event_name + ".csv"
+        )
+
+        with open(event_file, "w", newline="") as file:
+
+            writer = csv.DictWriter(
+                file,
+                fieldnames=fieldnames
+            )
+
+            writer.writeheader()
+            writer.writerows(participants)
+
+
+    # -------------------------------
+    # 6. WRITE SUMMARY REPORT
+    # -------------------------------
+
+    with open(summary_file, "w") as file:
+
+        file.write("COLLEGE FEST REGISTRATION REPORT\n")
+        file.write("-----------------------------\n")
+        file.write(f"Total lines processed: {total_lines}\n")
+        file.write(f"Valid registrations: {valid_count}\n")
+        file.write(f"Duplicate registrations: {duplicate_count}\n")
+        file.write(f"Invalid records: {invalid_count}\n")
+        file.write(f"Total events: {len(event_participants)}\n")
+
+        file.write("\nEvent-wise participant count:\n")
+
+        for event, participants in event_participants.items():
+            file.write(f"{event}: {len(participants)}\n")
+
+
+    # -------------------------------
+    # 7. WRITE ERROR LOG
+    # -------------------------------
+
+    with open(error_file, "w") as file:
+
+        if errors:
+            for error in errors:
+                file.write(error + "\n")
+        else:
+            file.write("No errors found.\n")
+
+
+    # -------------------------------
+    # 8. DISPLAY RESULT
+    # -------------------------------
+
+    print("COLLEGE FEST PROCESSING COMPLETED")
+    print("--------------------------------")
+    print("Total lines:", total_lines)
+    print("Valid registrations:", valid_count)
+    print("Duplicate registrations:", duplicate_count)
+    print("Invalid records:", invalid_count)
+    print("Events:", len(event_participants))
+    print("\nOutput files saved inside:", output_folder)
+
+
+# -------------------------------
+# 9. RUN PROGRAM
+# -------------------------------
+
+process_files()
