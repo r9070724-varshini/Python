@@ -1,1 +1,160 @@
+# Task B4 - Sentiment Analysis and Complaint Summarization
 
+POSITIVE = ['good', 'clean', 'fast', 'helpful', 'improved']
+NEGATIVE = ['bad', 'dirty', 'slow', 'rude', 'smoke', 'broken']
+NEGATORS = ['not', 'never', 'no']
+
+
+# Sentiment scoring
+def score(text):
+    words = text.lower().replace('.', '').replace(',', '').split()
+    total = 0
+
+    for i in range(len(words)):
+        value = 0
+
+        if words[i] in POSITIVE:
+            value = 1
+        elif words[i] in NEGATIVE:
+            value = -1
+
+        # Check whether the previous word is a negator
+        if i > 0 and words[i - 1] in NEGATORS:
+            value = -value
+
+        total += value
+
+    return total
+
+
+# Sentiment labeling
+def label(text):
+    s = score(text)
+
+    if s > 0:
+        return "positive"
+    elif s < 0:
+        return "negative"
+    else:
+        return "neutral"
+
+
+# Test complaints
+complaints = [
+    "Roads are clean and the bus was fast.",
+    "Smoke from the factory, air is bad.",
+    "The staff were not helpful.",
+    "Not bad, service improved.",
+    "The bus was slow and dirty.",
+    "The road is broken.",
+    "The service was good.",
+    "The staff were rude.",
+    "The roads are not clean.",
+    "The bus was fast and helpful.",
+    "The air is clean.",
+    "The service was not bad.",
+    "The road was dirty and broken.",
+    "The staff were helpful.",
+    "The bus was not slow.",
+    "Smoke is bad.",
+    "The service was improved.",
+    "The road is good and clean.",
+    "The bus was broken.",
+    "The staff were not rude.",
+    "The air was dirty.",
+    "The service was fast.",
+    "The bus was not good.",
+    "The road was clean.",
+    "The staff were slow.",
+    "The service was not helpful.",
+    "The air was bad.",
+    "The bus was good and fast.",
+    "The road was broken and dirty.",
+    "The staff were good.",
+    "The bus was not broken.",
+    "The service was rude.",
+    "The air was clean and good.",
+    "The road was slow.",
+    "The staff were not bad.",
+    "The bus was dirty.",
+    "The service was improved and fast.",
+    "The road was not good.",
+    "The staff were helpful and fast.",
+    "Smoke makes the air bad.",
+    "The bus was clean.",
+    "The road was not broken.",
+    "The service was slow and rude.",
+    "The staff were not slow.",
+    "The bus was good.",
+    "The air was not clean.",
+    "The service was not rude.",
+    "The road was fast.",
+    "The staff were bad.",
+    "The bus was improved."
+]
+
+
+# Display sentiment results
+for c in complaints:
+    print(label(c), "|", c)
+
+
+# Simple summarizer: selects the first sentence
+def summarizer(text):
+    sentences = text.split(".")
+    return sentences[0]
+
+
+print("\n--- Complaint Summaries ---")
+
+for c in complaints[:5]:
+    print("Complaint:", c)
+    print("Summary:", summarizer(c))
+    print()
+
+
+# Find complaints that may be incorrectly labeled
+print("--- Possible Wrong Labels ---")
+
+for c in complaints:
+    if "not" in c.lower():
+        print(label(c), "|", c)
+
+
+# Simulate database query before indexing
+import time
+
+start = time.time()
+
+for c in complaints:
+    if "Road" in c or "road" in c:
+        pass
+
+before = time.time() - start
+
+
+# Create an index using a dictionary
+station_index = {}
+
+for i, c in enumerate(complaints):
+    station_index.setdefault("road", []).append(c)
+
+start = time.time()
+
+result = station_index.get("road", [])
+
+after = time.time() - start
+
+print("\n--- Database Performance ---")
+print("Query time before indexing:", before)
+print("Query time after indexing:", after)
+print("Complaints stored:", len(complaints))
+
+
+# Production decision
+print("\n--- Production Decision ---")
+print("Store complaints in a database.")
+print("Clean text and remove unnecessary words.")
+print("Create indexes for station and date.")
+print("Use simple AI for initial sentiment analysis.")
+print("Use a trained model if complaint data becomes large.")
