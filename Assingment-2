@@ -1,1 +1,50 @@
+import time
 
+numbers = [2, 4, 2, 5, 4, 2, 6, 5, 7, 4]
+
+# ORIGINAL PROGRAM
+count1 = 0
+start = time.time()
+
+duplicates1 = []
+
+for i in range(len(numbers)):
+    for j in range(i + 1, len(numbers)):
+        count1 += 1
+        if numbers[i] == numbers[j]:
+            if numbers[i] not in duplicates1:
+                duplicates1.append(numbers[i])
+
+original_time = time.time() - start
+
+print("Original Program")
+print("Duplicates:", duplicates1)
+print("Comparisons:", count1)
+print("Time:", original_time)
+
+
+# REDESIGNED PROGRAM
+count2 = 0
+start = time.time()
+
+frequency = {}
+
+for num in numbers:
+    count2 += 1
+    if num in frequency:
+        frequency[num] += 1
+    else:
+        frequency[num] = 1
+
+duplicates2 = []
+
+for num in frequency:
+    if frequency[num] > 1:
+        duplicates2.append(num)
+
+redesigned_time = time.time() - start
+
+print("\nRedesigned Program")
+print("Duplicates:", duplicates2)
+print("Operations:", count2)
+print("Time:", redesigned_time)
