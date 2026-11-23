@@ -1,1 +1,58 @@
+def normalize_number(number):
+    number = number.replace(" ", "").replace("-", "")
+    if number.startswith("+91"):
+        number = number[3:]
+    return number
 
+
+def merge_contacts(contact_lists):
+    merged = {}
+
+    for contact_list in contact_lists:
+        for contact in contact_list:
+            name = contact["name"]
+            numbers = contact["numbers"]
+            emails = contact["emails"]
+
+            for number in numbers:
+                key = normalize_number(number)
+
+                if key not in merged:
+                    merged[key] = {
+                        "name": name,
+                        "numbers": set(),
+                        "emails": set()
+                    }
+
+                merged[key]["numbers"].add(number)
+
+                for email in emails:
+                    merged[key]["emails"].add(email)
+
+    return merged
+
+
+# Contacts from two phones and one SIM card
+phone1 = [
+    {"name": "Dr. Ravi", "numbers": ["+91 9840012345"], "emails": ["ravi@gmail.com"]},
+    {"name": "Anu", "numbers": ["9876543210"], "emails": ["anu@gmail.com"]}
+]
+
+phone2 = [
+    {"name": "Ravi Kumar", "numbers": ["9840012345"], "emails": ["ravi@gmail.com"]},
+    {"name": "Kumar", "numbers": ["9123456780"], "emails": ["kumar@gmail.com"]}
+]
+
+sim_card = [
+    {"name": "Ravi", "numbers": ["9840012345"], "emails": ["ravi.work@gmail.com"]}
+]
+
+# Merge all contact lists
+result = merge_contacts([phone1, phone2, sim_card])
+
+# Display the merged contacts
+for contact in result.values():
+    print("Name:", contact["name"])
+    print("Phone Numbers:", contact["numbers"])
+    print("Emails:", contact["emails"])
+    print()
